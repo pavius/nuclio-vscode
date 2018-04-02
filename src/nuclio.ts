@@ -231,12 +231,12 @@ export class Dashboard implements IPlatform{
             if (createdFunctionConfig.length) {
                 
                 // if the function is ready, we're done
-                if (createdFunctionConfig[0].status.state == "ready") {
+                if (createdFunctionConfig[0].status.state === "ready") {
                     return createdFunctionConfig[0];
                 }
 
                 // if the function is in error state, explode
-                if (createdFunctionConfig[0].status.state == "error") {
+                if (createdFunctionConfig[0].status.state === "error") {
                     throw new Error("Creation failed: " + createdFunctionConfig[0].status.message);
                 }
             }
