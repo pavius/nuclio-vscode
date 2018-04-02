@@ -18,16 +18,16 @@ import axios from 'axios';
 
 export interface IPlatform {
 
-    // create a single  function given a configuration
+    // create a single project given a configuration
     createProject(projectConfig: ProjectConfig);
 
     // get a set of projects matching a filter
     getProjects(filter: IProjectFilter): Promise<ProjectConfig[]>;
 
     // delete a project
-    deleteProject(projectID: IResourceIdentifier);
+    deleteProject(id: IResourceIdentifier);
 
-    // create a single  function given a configuration
+    // create a single function given a configuration
     createFunction(projectName: string, functionConfig: FunctionConfig): Promise<FunctionConfig>;
 
     // invoke a function
@@ -180,7 +180,7 @@ export class Dashboard implements IPlatform{
         this.url = url;
     }
 
-    // create a single  function given a configuration
+    // create a single project given a configuration
     async createProject(projectConfig: ProjectConfig) {
         const body = JSON.stringify(projectConfig);
 
@@ -201,7 +201,7 @@ export class Dashboard implements IPlatform{
     async createFunction(projectName: string, functionConfig: FunctionConfig): Promise<FunctionConfig> {
         const body = JSON.stringify(functionConfig);
 
-        // create labels if not created
+        // create labels if not created and set the project name label
         functionConfig.metadata.labels = functionConfig.metadata.labels ? functionConfig.metadata.labels : {};
         functionConfig.metadata.labels["nuclio.io/project-name"] = projectName;
         
@@ -211,7 +211,8 @@ export class Dashboard implements IPlatform{
         const retryIntervalMs = 1000;
         const maxRetries = 60;
 
-        // poll for retryIntervalMs * maxRetries
+        // poll for retryIntervalMs * maxRetries. the function is being created and we need for it 
+        // to become ready or to fail
         for (let retryIdx = 0; retryIdx < maxRetries; retryIdx++) {
             let createdFunctionConfig: FunctionConfig[];
 
@@ -316,7 +317,7 @@ export class Dashboard implements IPlatform{
         let responseResources = {};
 
         // get functions, filtered by the filter
-        let response = await axios.get(this.url + path, {headers: headers})
+        const response = await axios.get(this.url + path, {headers: headers})
 
         // if name was passed, we get a single entity. wrap it in an array to normalize it
         if (filter.name !== undefined) {
@@ -327,7 +328,7 @@ export class Dashboard implements IPlatform{
 
         // iterate over response which is {resourceName: resourceConfig} and create the appropriate object
         for (const resourceName in responseResources) {
-            let resource = new resourceClass();
+            const resource = new resourceClass();
 
             // assign the object
             Object.assign(resource, responseResources[resourceName]);
@@ -346,7 +347,7 @@ export class Dashboard implements IPlatform{
             throw new Error("Resource name must be specified in delete");
         }
         
-        let resource = new resourceClass();
+        const resource = new resourceClass();
         resource.metadata.name = id.name;
         resource.metadata.namespace = id.namespace;
         
