@@ -41,10 +41,10 @@ export interface IPlatform {
 }
 
 export class ResourceMeta {
-    name: string
-    namespace: string
-    labels: {[key: string]: string}
-    annotations: {[key: string]: string}
+    name: string;
+    namespace: string;
+    labels: {[key: string]: string};
+    annotations: {[key: string]: string};
 }
 
 export class ProjectSpec {
@@ -78,8 +78,8 @@ export class InvokeResult {
 }
 
 export interface IResourceIdentifier {
-    namespace: string
-    name?: string
+    namespace: string;
+    name?: string;
 }
 
 export interface IProjectFilter extends IResourceIdentifier {}
@@ -173,7 +173,7 @@ export class FunctionConfig {
     }
 }
 
-export class Dashboard implements IPlatform{
+export class Dashboard implements IPlatform {
     public url: string;
     
     constructor(url: string) {
@@ -185,17 +185,17 @@ export class Dashboard implements IPlatform{
         const body = JSON.stringify(projectConfig);
 
         // create function by posting function config
-        await axios.post(this.url + "/projects", body)
+        await axios.post(this.url + "/projects", body);
     }
 
     // get a set of projects matching a filter
     async getProjects(filter: IProjectFilter): Promise<ProjectConfig[]> {
-        return await this.getResources(filter, "project", ProjectConfig)
+        return await this.getResources(filter, "project", ProjectConfig);
     }
 
     // delete a project
     async deleteProject(id: IResourceIdentifier) {
-        return this.deleteResource(id, "project", ProjectConfig)
+        return this.deleteResource(id, "project", ProjectConfig);
     }
     
     async createFunction(projectName: string, functionConfig: FunctionConfig): Promise<FunctionConfig> {
@@ -206,7 +206,7 @@ export class Dashboard implements IPlatform{
         functionConfig.metadata.labels["nuclio.io/project-name"] = projectName;
         
         // create function by posting function config
-        const response = await axios.post(this.url + "/functions", body)
+        const response = await axios.post(this.url + "/functions", body);
 
         const retryIntervalMs = 1000;
         const maxRetries = 60;
@@ -264,14 +264,14 @@ export class Dashboard implements IPlatform{
         }
 
         let response: any;
-        const url = this.url + "/function_invocations"
-        const axiosMethod = axios[options.method]
+        const url = this.url + "/function_invocations";
+        const axiosMethod = axios[options.method];
 
         // invoke the function by calling the appropraite method on function_invocations
-        if (['post', 'put', 'path'].indexOf(options.method) > -1) {
-            response = await axiosMethod(url, options.body, {headers: headers})
+        if (['post', 'put', 'path'].includes(options.method)) {
+            response = await axiosMethod(url, options.body, {headers: headers});
         } else {
-            response = await axiosMethod(url, {headers: headers})
+            response = await axiosMethod(url, {headers: headers});
         }
         
         const invokeResult = new InvokeResult();
@@ -291,39 +291,39 @@ export class Dashboard implements IPlatform{
             headers["x-nuclio-project-name"] = filter.projectName;
         }
         
-        return await this.getResources(filter, "function", FunctionConfig, headers)
+        return await this.getResources(filter, "function", FunctionConfig, headers);
     }
 
     // delete functions
     async deleteFunction(id: IFunctionFilter) {
-        return this.deleteResource(id, "function", FunctionConfig)
+        return this.deleteResource(id, "function", FunctionConfig);
     }
 
     // get resources
     async getResources(filter: IResourceIdentifier, resourceName: string, resourceClass: any, headers?: any): Promise<any> {
 
         // headers will filter namespace
-        headers = headers ? headers : {}
+        headers = headers ? headers : {};
         headers["x-nuclio-" + resourceName + "-namespace"] = filter.namespace;
 
         // url is resource name (plural)
-        let path = "/" + resourceName + "s"
+        let path = "/" + resourceName + "s";
 
         if (filter.name !== undefined) {
-            path += "/" + filter.name
+            path += "/" + filter.name;
         }
         
         const resources = [];
         let responseResources = {};
 
         // get functions, filtered by the filter
-        const response = await axios.get(this.url + path, {headers: headers})
+        const response = await axios.get(this.url + path, {headers: headers});
 
         // if name was passed, we get a single entity. wrap it in an array to normalize it
         if (filter.name !== undefined) {
-            responseResources["single"] = response.data
+            responseResources["single"] = response.data;
         } else {
-            responseResources = response.data
+            responseResources = response.data;
         }
 
         // iterate over response which is {resourceName: resourceConfig} and create the appropriate object
