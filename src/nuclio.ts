@@ -267,7 +267,7 @@ export class Dashboard implements IPlatform {
         const url = this.url + "/function_invocations";
         const axiosMethod = axios[options.method];
 
-        // invoke the function by calling the appropraite method on function_invocations
+        // invoke the function by calling the appropriate method on function_invocations
         if (['post', 'put', 'path'].includes(options.method)) {
             response = await axiosMethod(url, options.body, {headers: headers});
         } else {
