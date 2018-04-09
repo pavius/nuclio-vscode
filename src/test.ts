@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as nuclio from "./nuclio"
+import * as nuclio from "./nuclio";
 
 class Test {
 
@@ -27,9 +27,9 @@ class Test {
         projectConfig.metadata.name = "ts-project";
         projectConfig.metadata.namespace = "nuclio";
         projectConfig.spec.description = "some description";
-        projectConfig.spec.displayName = "Typescript project"
+        projectConfig.spec.displayName = "Typescript project";
 
-        await dashboard.createProject(projectConfig)
+        await dashboard.createProject(projectConfig);
 
         // get all projects
         let projects = await dashboard.getProjects({namespace: projectConfig.metadata.namespace})
@@ -54,11 +54,11 @@ class Test {
         functionConfig.spec.handler = "main:Handler";
 
         // create the function. will return once the function is ready
-        const createdFunction = await dashboard.createFunction(projectConfig.metadata.name, functionConfig)
+        const createdFunction = await dashboard.createFunction(projectConfig.metadata.name, functionConfig);
         console.log("Deployed successfully @ " + createdFunction.status.httpPort);
 
         // get all functions
-        let functionConfigs = await dashboard.getFunctions({namespace: functionConfig.metadata.namespace})
+        let functionConfigs = await dashboard.getFunctions({namespace: functionConfig.metadata.namespace});
         console.log("Got all functions:\n" + JSON.stringify(functionConfigs, null, "\t"));
 
         // get one function

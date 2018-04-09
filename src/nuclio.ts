@@ -284,7 +284,7 @@ export class Dashboard implements IPlatform {
 
     // get a set of functions matching a filter
     async getFunctions(filter: IFunctionFilter): Promise<FunctionConfig[]> {
-        let headers = {}
+        let headers = {};
         
         // set project name filter
         if (filter.projectName !== undefined) {
