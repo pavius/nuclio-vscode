@@ -21,7 +21,7 @@ class Test {
     static async deployFunctionAndCleanup() {
         const dashboard = new nuclio.Dashboard("http://127.0.0.1:8070");
         
-        console.log("Creating project")
+        console.log("Creating project");
 
         const projectConfig = new nuclio.ProjectConfig();
         projectConfig.metadata.name = "ts-project";
@@ -32,14 +32,14 @@ class Test {
         await dashboard.createProject(projectConfig);
 
         // get all projects
-        let projects = await dashboard.getProjects({namespace: projectConfig.metadata.namespace})
+        let projects = await dashboard.getProjects({namespace: projectConfig.metadata.namespace});
         console.log("Got all projects: " + JSON.stringify(projects));
 
         // get project by name
         projects = await dashboard.getProjects({
             namespace: projectConfig.metadata.namespace, 
             name: projectConfig.metadata.name
-        })
+        });
 
         console.log("Got one project: " + JSON.stringify(projects));
         
@@ -48,7 +48,7 @@ class Test {
         const functionConfig = new nuclio.FunctionConfig();
         functionConfig.metadata.name = "ts";
         functionConfig.metadata.namespace = "nuclio";
-        functionConfig.spec.replicas = 1
+        functionConfig.spec.replicas = 1;
         functionConfig.spec.runtime = "golang";
         functionConfig.spec.build.functionSourceCode = "CnBhY2thZ2UgbWFpbgoKaW1wb3J0ICgKCSJnaXRodWIuY29tL251Y2xpby9udWNsaW8tc2RrLWdvIgopCgpmdW5jIEhhbmRsZXIoY29udGV4dCAqbnVjbGlvLkNvbnRleHQsIGV2ZW50IG51Y2xpby5FdmVudCkgKGludGVyZmFjZXt9LCBlcnJvcikgewoJY29udGV4dC5Mb2dnZXIuSW5mbygiVGhpcyBpcyBhbiB1bnN0cnVjdXJlZCAlcyIsICJsb2ciKQoKCXJldHVybiBudWNsaW8uUmVzcG9uc2V7CgkJU3RhdHVzQ29kZTogIDIwMCwKCQlDb250ZW50VHlwZTogImFwcGxpY2F0aW9uL3RleHQiLAoJCUJvZHk6ICAgICAgICBbXWJ5dGUoIkhlbGxvLCBmcm9tIG51Y2xpbyA6XSIpLAoJfSwgbmlsCn0=";
         functionConfig.spec.handler = "main:Handler";
@@ -65,7 +65,7 @@ class Test {
         functionConfigs = await dashboard.getFunctions({
             namespace: functionConfig.metadata.namespace, 
             name: functionConfig.metadata.name,
-        })
+        });
 
         console.log("Got one function:\n" + JSON.stringify(functionConfigs, null, "\t"));
         
@@ -74,7 +74,7 @@ class Test {
             namespace: functionConfig.metadata.namespace, 
             name: functionConfig.metadata.name,
             projectName: projectConfig.metadata.name,
-        })
+        });
 
         console.log("Got function by project:\n" + JSON.stringify(functionConfigs, null, "\t"));
 
@@ -90,22 +90,22 @@ class Test {
         }
 
         // delete the function
-        await dashboard.deleteFunction(createdFunction.metadata)
+        await dashboard.deleteFunction(createdFunction.metadata);
         console.log("Deleted function");
 
         // delete project
-        await dashboard.deleteProject(projectConfig.metadata)
-        console.log("Deleted project")
+        await dashboard.deleteProject(projectConfig.metadata);
+        console.log("Deleted project");
 
         // get all functions again
-        functionConfigs = await dashboard.getFunctions({namespace: functionConfig.metadata.namespace})
+        functionConfigs = await dashboard.getFunctions({namespace: functionConfig.metadata.namespace});
         console.log("Got all functions:\n" + JSON.stringify(functionConfigs, null, "\t"));
     }
 
     public static main(): number {
         this.deployFunctionAndCleanup().then(() => {
             console.log("Done");
-        }) 
+        });
 
         return 0;
     }
