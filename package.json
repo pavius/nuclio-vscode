@@ -11,16 +11,48 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "onView:nuclioTreeProvider"
     ],
     "main": "./out/extension",
     "contributes": {
+        "views": {
+            "explorer": [
+                {
+                    "id": "nuclioTreeProvider",
+                    "name": "Nuclio Functions"
+                }
+            ]
+        },
         "commands": [
             {
-                "command": "extension.sayHello",
-                "title": "Hello World"
+                "command": "nuclioTreeProvider.invokeFunction",
+                "title": "Invoke function"
+            },
+            {
+                "command": "nuclioTreeProvider.refresh",
+                "title": "Refresh",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
             }
-        ]
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "nuclioTreeProvider.refresh",
+                    "when": "view == nuclioTreeProvider",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "nuclioTreeProvider.invokeFunction",
+                    "when": "view == nuclioTreeProvider && viewItem == function",
+                    "group": "1@1"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

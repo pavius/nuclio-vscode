@@ -9,7 +9,7 @@
         "outDir": "out",
         "sourceMap": true,
         "target": "es2016",
-        "rootDir": "."
+        "rootDir": "src"
     },
     "include": [
         "**/*.ts"
