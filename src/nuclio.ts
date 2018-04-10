@@ -199,11 +199,12 @@ export class Dashboard implements IPlatform {
     }
     
     async createFunction(projectName: string, functionConfig: FunctionConfig): Promise<FunctionConfig> {
-        const body = JSON.stringify(functionConfig);
 
         // create labels if not created and set the project name label
         functionConfig.metadata.labels = functionConfig.metadata.labels ? functionConfig.metadata.labels : {};
         functionConfig.metadata.labels["nuclio.io/project-name"] = projectName;
+
+        const body = JSON.stringify(functionConfig);
         
         // create function by posting function config
         const response = await axios.post(this.url + "/functions", body);

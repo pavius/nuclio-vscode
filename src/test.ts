@@ -72,7 +72,6 @@ class Test {
         // get function by project
         functionConfigs = await dashboard.getFunctions({
             namespace: functionConfig.metadata.namespace, 
-            name: functionConfig.metadata.name,
             projectName: projectConfig.metadata.name,
         });
 
