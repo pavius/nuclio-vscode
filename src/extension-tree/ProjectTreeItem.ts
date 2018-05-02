@@ -1,26 +1,40 @@
+'use strict';
+
 import * as vscode from 'vscode';
-import { ProjectConfig } from '../nuclio';
+import { ProjectConfig, Dashboard, LocalEnvironment, LocalProject, LocalFunction } from '../nuclio';
 import { NuclioTreeBase, NuclioTreeObject } from './NuclioTreeItem';
 import { FunctionTreeItem } from './FunctionTreeItem';
-import { dashboard } from '../extension';
 import { ContextValues } from '../constants';
+import { isEmpty } from '../utils';
 
 export class ProjectTreeItem extends NuclioTreeBase {
 
+    constructor(
+        public readonly projectConfig: LocalProject,
+        public readonly environmentConfig: LocalEnvironment,
+    ) {
+        super(projectConfig.displayName, ContextValues.project, vscode.TreeItemCollapsibleState.Expanded);
+    }
+
     getChildren(): vscode.ProviderResult<NuclioTreeObject[]> {
         return new Promise(async resolve => {
-            let functionConfigs = await dashboard.getFunctions({
-                projectName: this.projectConfig.metadata.name,
-                namespace: this.projectConfig.metadata.namespace,
-            });
-            let functionTreeItems = functionConfigs.map(functionConfig => new FunctionTreeItem(functionConfig));
+            let functionConfigs = await this.getFunctionsFromConfig(this.projectConfig.functions);
+            if (isEmpty(functionConfigs)) {
+                return resolve();
+            }
+            let functionTreeItems = functionConfigs.map(functionConfig =>
+                new FunctionTreeItem(functionConfig, new Dashboard(this.environmentConfig.address), this.projectConfig.name));
             return resolve(functionTreeItems);
         });
     }
 
-    constructor(
-        public readonly projectConfig: ProjectConfig
-    ) {
-        super(projectConfig.metadata.name, ContextValues.project, vscode.TreeItemCollapsibleState.Expanded);
+    async getFunctionsFromConfig(functions: LocalFunction[]): Promise<LocalFunction[]> {
+        if (isEmpty(functions)) {
+            return [];
+        }
+
+        return functions.map(func => {
+            return new LocalFunction(func.name, func.namespace, func.path);
+        });
     }
 }

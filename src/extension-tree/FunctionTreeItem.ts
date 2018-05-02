@@ -1,5 +1,7 @@
+'use strict';
+
 import * as vscode from 'vscode';
-import { FunctionConfig } from '../nuclio';
+import { FunctionConfig, Dashboard, LocalFunction } from '../nuclio';
 import { NuclioTreeBase, NuclioTreeObject } from './NuclioTreeItem';
 import { ContextValues } from '../constants';
 
@@ -9,11 +11,13 @@ export class FunctionTreeItem extends NuclioTreeBase {
 	getChildren(): vscode.ProviderResult<NuclioTreeObject[]> {
 		return null;
 	}
-	
-    constructor(
-		public readonly functionConfig: FunctionConfig
+
+	constructor(
+		public readonly functionConfig: LocalFunction,
+		public readonly dashboard: Dashboard,
+		public readonly projectName: string
 	) {
-		super(functionConfig.metadata.name, ContextValues.function, vscode.TreeItemCollapsibleState.None);
+		super(functionConfig.name, ContextValues.function, vscode.TreeItemCollapsibleState.None);
 		this.functionConfig = functionConfig;
 	}
 }

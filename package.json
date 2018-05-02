@@ -29,12 +29,40 @@
                 "title": "Invoke function"
             },
             {
+                "command": "nuclioTreeProvider.deleteFunction",
+                "title": "Delete function"
+            },
+            {
+                "command": "nuclioTreeProvider.deployFunction",
+                "title": "Deploy function"
+            },
+            {
+                "command": "nuclioTreeProvider.createFunction",
+                "title": "Create function"
+            },
+            {
+                "command": "nuclioTreeProvider.deleteProject",
+                "title": "Delete project"
+            },
+            {
                 "command": "nuclioTreeProvider.refresh",
                 "title": "Refresh",
                 "icon": {
                     "light": "resources/light/refresh.svg",
                     "dark": "resources/dark/refresh.svg"
                 }
+            },
+            {
+                "command": "nuclioTreeProvider.createEnvironment",
+                "title": "Create environment",
+                "icon": {
+                    "light": "resources/light/CreateNewProject.svg",
+                    "dark": "resources/dark/CreateNewProject.svg"
+                }
+            },
+            {
+                "command": "nuclioTreeProvider.createProject",
+                "title": "Create project"
             }
         ],
         "menus": {
@@ -43,13 +71,43 @@
                     "command": "nuclioTreeProvider.refresh",
                     "when": "view == nuclioTreeProvider",
                     "group": "navigation"
+                },
+                {
+                    "command": "nuclioTreeProvider.createEnvironment",
+                    "when": "view == nuclioTreeProvider",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [
                 {
+                    "command": "nuclioTreeProvider.deployFunction",
+                    "when": "view == nuclioTreeProvider && viewItem == function",
+                    "group": "1@1"
+                },
+                {
                     "command": "nuclioTreeProvider.invokeFunction",
                     "when": "view == nuclioTreeProvider && viewItem == function",
                     "group": "1@1"
+                },
+                {
+                    "command": "nuclioTreeProvider.deleteFunction",
+                    "when": "view == nuclioTreeProvider && viewItem == function",
+                    "group": "2@1"
+                },
+                {
+                    "command": "nuclioTreeProvider.createFunction",
+                    "when": "view == nuclioTreeProvider && viewItem == project",
+                    "group": "1@1"
+                },
+                {
+                    "command": "nuclioTreeProvider.deleteProject",
+                    "when": "view == nuclioTreeProvider && viewItem == project",
+                    "group": "2@1"
+                },
+                {
+                    "command": "nuclioTreeProvider.createProject",
+                    "when": "view == nuclioTreeProvider && viewItem == environment",
+                    "group": "navigation"
                 }
             ]
         }
@@ -69,6 +127,8 @@
         "@types/mocha": "^2.2.42"
     },
     "dependencies": {
-        "axios": "^0.18.0"
+        "axios": "^0.18.0",
+        "buffer": "^5.1.0",
+        "fs-extra": "^5.0.0"
     }
 }

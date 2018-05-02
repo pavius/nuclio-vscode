@@ -8,18 +8,21 @@ You may obtain a copy of the License at
     http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
+distributed under the License is distributed on an 'AS IS' BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
 
 import axios from 'axios';
+import { isEmpty } from './utils';
+import * as path from 'path';
+const fs = require('fs-extra');
 
 export interface IPlatform {
 
     // create a single project given a configuration
-    createProject(projectConfig: ProjectConfig);
+    createProject(projectConfig: ProjectConfig): Promise<ProjectConfig>;
 
     // get a set of projects matching a filter
     getProjects(filter: IProjectFilter): Promise<ProjectConfig[]>;
@@ -40,11 +43,34 @@ export interface IPlatform {
     deleteFunction(id: IResourceIdentifier);
 }
 
+export class EnvironmentsConfig {
+    environments: LocalEnvironment[];
+}
+
+export class LocalEnvironment {
+    constructor(
+        public readonly name: string,
+        public readonly namespace: string,
+        public readonly address: string,
+        public projects: { name: string, path: string }[]) {
+    }
+}
+
+export class LocalProject {
+    constructor(public name: string, public displayName: string, public path: string, public functions: LocalFunction[]) {
+    }
+}
+
+export class LocalFunction {
+    constructor(public readonly name: string, public readonly namespace: string, public readonly path: string) {
+    }
+}
+
 export class ResourceMeta {
     name: string;
     namespace: string;
-    labels: {[key: string]: string};
-    annotations: {[key: string]: string};
+    labels: { [key: string]: string };
+    annotations: { [key: string]: string };
 }
 
 export class ProjectSpec {
@@ -66,14 +92,14 @@ export interface IInvokeOptions {
     method: string;
     logLevel?: string;
     path?: string;
-    headers?: {[key: string]:any};
+    headers?: { [key: string]: any };
     body?: any;
     via?: string;
 }
 
 export class InvokeResult {
     statusCode: number;
-    headers: {[key: string]:any};
+    headers: { [key: string]: any };
     body: any;
 }
 
@@ -82,7 +108,7 @@ export interface IResourceIdentifier {
     name?: string;
 }
 
-export interface IProjectFilter extends IResourceIdentifier {}
+export interface IProjectFilter extends IResourceIdentifier { }
 
 export interface IFunctionFilter extends IResourceIdentifier {
     projectName?: string;
@@ -130,7 +156,7 @@ export class Build {
     baseImage: string;
     commands: string[];
     scriptPaths: string[];
-    addedObjectPaths: {[localPath: string]: string};
+    addedObjectPaths: { [localPath: string]: string };
 }
 
 export class FunctionSpec {
@@ -144,8 +170,8 @@ export class FunctionSpec {
     replicas: number;
     minReplicas: number;
     maxReplicas: number;
-    dataBindings: {[name: string]: DataBinding};
-    triggers: {[name: string]: Trigger};
+    dataBindings: { [name: string]: DataBinding };
+    triggers: { [name: string]: Trigger };
     build: Build;
     runRegistry: string;
     runtimeAttributes: any;
@@ -175,39 +201,40 @@ export class FunctionConfig {
 
 export class Dashboard implements IPlatform {
     public url: string;
-    
+
     constructor(url: string) {
         this.url = url;
     }
 
     // create a single project given a configuration
-    async createProject(projectConfig: ProjectConfig) {
+    async createProject(projectConfig: ProjectConfig): Promise<ProjectConfig> {
         const body = JSON.stringify(projectConfig);
 
         // create function by posting function config
-        await axios.post(this.url + "/projects", body);
+        let result = await axios.post(this.url + '/projects', body);
+        return result.data;
     }
 
     // get a set of projects matching a filter
     async getProjects(filter: IProjectFilter): Promise<ProjectConfig[]> {
-        return await this.getResources(filter, "project", ProjectConfig);
+        return await this.getResources(filter, 'project', ProjectConfig);
     }
 
     // delete a project
     async deleteProject(id: IResourceIdentifier) {
-        return this.deleteResource(id, "project", ProjectConfig);
+        return this.deleteResource(id, 'project', ProjectConfig);
     }
-    
+
     async createFunction(projectName: string, functionConfig: FunctionConfig): Promise<FunctionConfig> {
 
         // create labels if not created and set the project name label
         functionConfig.metadata.labels = functionConfig.metadata.labels ? functionConfig.metadata.labels : {};
-        functionConfig.metadata.labels["nuclio.io/project-name"] = projectName;
+        functionConfig.metadata.labels['nuclio.io/project-name'] = projectName;
 
         const body = JSON.stringify(functionConfig);
-        
+
         // create function by posting function config
-        const response = await axios.post(this.url + "/functions", body);
+        const response = await axios.post(this.url + '/functions', body);
 
         const retryIntervalMs = 1000;
         const maxRetries = 60;
@@ -221,7 +248,7 @@ export class Dashboard implements IPlatform {
 
                 // try to get functions. this can fail in the local platform, as it may return 404 at this point
                 createdFunctionConfig = await this.getFunctions({
-                    name: functionConfig.metadata.name, 
+                    name: functionConfig.metadata.name,
                     namespace: functionConfig.metadata.namespace
                 });
             } catch (e) {
@@ -230,15 +257,15 @@ export class Dashboard implements IPlatform {
 
             // if we got a function
             if (createdFunctionConfig.length) {
-                
+
                 // if the function is ready, we're done
-                if (createdFunctionConfig[0].status.state === "ready") {
+                if (createdFunctionConfig[0].status.state === 'ready') {
                     return createdFunctionConfig[0];
                 }
 
                 // if the function is in error state, explode
-                if (createdFunctionConfig[0].status.state === "error") {
-                    throw new Error("Creation failed: " + createdFunctionConfig[0].status.message);
+                if (createdFunctionConfig[0].status.state === 'error') {
+                    throw new Error('Creation failed: ' + createdFunctionConfig[0].status.message);
                 }
             }
 
@@ -248,33 +275,33 @@ export class Dashboard implements IPlatform {
     }
 
     async invokeFunction(id: IResourceIdentifier, options: IInvokeOptions): Promise<InvokeResult> {
-        
+
         // name must be passed
         if (id.name === undefined) {
-            throw new Error("Function name must be specified in invoke");
+            throw new Error('Function name must be specified in invoke');
         }
-        
+
         // get headers from options or create a new object
         const headers = options.headers ? options.headers : {};
-        headers["x-nuclio-function-name"] = id.name;
-        headers["x-nuclio-function-namespace"] = id.namespace;
-        headers["x-nuclio-invoke-via"] = options.via ? options.via : "external-ip";
-        
+        headers['x-nuclio-function-name'] = id.name;
+        headers['x-nuclio-function-namespace'] = id.namespace;
+        headers['x-nuclio-invoke-via'] = options.via ? options.via : 'external-ip';
+
         if (options.path !== undefined) {
-            headers["x-nuclio-path"] = options.path;
+            headers['x-nuclio-path'] = options.path;
         }
 
         let response: any;
-        const url = this.url + "/function_invocations";
+        const url = this.url + '/function_invocations';
         const axiosMethod = axios[options.method];
 
         // invoke the function by calling the appropriate method on function_invocations
         if (['post', 'put', 'path'].includes(options.method)) {
-            response = await axiosMethod(url, options.body, {headers: headers});
+            response = await axiosMethod(url, options.body, { headers: headers });
         } else {
-            response = await axiosMethod(url, {headers: headers});
+            response = await axiosMethod(url, { headers: headers });
         }
-        
+
         const invokeResult = new InvokeResult();
         invokeResult.statusCode = response.status;
         invokeResult.headers = response.headers;
@@ -286,18 +313,18 @@ export class Dashboard implements IPlatform {
     // get a set of functions matching a filter
     async getFunctions(filter: IFunctionFilter): Promise<FunctionConfig[]> {
         let headers = {};
-        
+
         // set project name filter
         if (filter.projectName !== undefined) {
-            headers["x-nuclio-project-name"] = filter.projectName;
+            headers['x-nuclio-project-name'] = filter.projectName;
         }
-        
-        return await this.getResources(filter, "function", FunctionConfig, headers);
+
+        return await this.getResources(filter, 'function', FunctionConfig, headers);
     }
 
     // delete functions
     async deleteFunction(id: IFunctionFilter) {
-        return this.deleteResource(id, "function", FunctionConfig);
+        return this.deleteResource(id, 'function', FunctionConfig);
     }
 
     // get resources
@@ -305,24 +332,24 @@ export class Dashboard implements IPlatform {
 
         // headers will filter namespace
         headers = headers ? headers : {};
-        headers["x-nuclio-" + resourceName + "-namespace"] = filter.namespace;
+        headers['x-nuclio-' + resourceName + '-namespace'] = filter.namespace;
 
         // url is resource name (plural)
-        let path = "/" + resourceName + "s";
+        let path = '/' + resourceName + 's';
 
         if (filter.name !== undefined) {
-            path += "/" + filter.name;
+            path += '/' + filter.name;
         }
-        
+
         const resources = [];
         let responseResources = {};
 
         // get functions, filtered by the filter
-        const response = await axios.get(this.url + path, {headers: headers});
+        const response = await axios.get(this.url + path, { headers: headers });
 
         // if name was passed, we get a single entity. wrap it in an array to normalize it
         if (filter.name !== undefined) {
-            responseResources["single"] = response.data;
+            responseResources['single'] = response.data;
         } else {
             responseResources = response.data;
         }
@@ -342,17 +369,17 @@ export class Dashboard implements IPlatform {
 
     // delete functions
     async deleteResource(id: IResourceIdentifier, resourceName: string, resourceClass: any) {
-        
+
         // name must be passed
         if (id.name === undefined) {
-            throw new Error("Resource name must be specified in delete");
+            throw new Error('Resource name must be specified in delete');
         }
-        
+
         const resource = new resourceClass();
         resource.metadata.name = id.name;
         resource.metadata.namespace = id.namespace;
-        
+
         // delete the function
-        await axios.delete(this.url + "/" + resourceName + "s", {data: JSON.stringify(resource)});
+        await axios.delete(this.url + '/' + resourceName + 's', { data: JSON.stringify(resource) });
     }
 }

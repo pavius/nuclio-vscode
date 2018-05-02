@@ -9,7 +9,9 @@
 			true,
 			"always"
 		],
-		"triple-equals": true
+		"triple-equals": true,
+		"quotemark": [true, "single"],
+		"object-curly-spacing": [true, "always"]
 	},
 	"defaultSeverity": "error"
 }

@@ -23,7 +23,7 @@ export class NuclioTreeBase implements NuclioTreeObject {
     }
 
     getChildren(): vscode.ProviderResult<NuclioTreeObject[]> {
-        throw new Error("Base Class: Method not implemented.");
+        throw new Error('Base Class: Method not implemented.');
     }
 
     getTreeItem(): vscode.TreeItem | Thenable<vscode.TreeItem> {

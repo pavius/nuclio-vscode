@@ -1,8 +1,9 @@
+'use strict';
+
 import * as vscode from 'vscode';
-import { ProjectTreeItem } from './ProjectTreeItem';
 import { NuclioTreeObject } from './NuclioTreeItem';
-import { dashboard } from '../extension';
-import { projectNamespace } from '../constants';
+import { EnvironmentTreeItem } from './EnvironmentTreeItem';
+import { SettingsFile } from '../config/settingsFile';
 
 
 export class NuclioTreeProvider implements vscode.TreeDataProvider<NuclioTreeObject> {
@@ -20,8 +21,9 @@ export class NuclioTreeProvider implements vscode.TreeDataProvider<NuclioTreeObj
     public getChildren(element?: NuclioTreeObject | undefined): vscode.ProviderResult<NuclioTreeObject[]> {
         if (typeof element === 'undefined') {
             return new Promise(async resolve => {
-                let projects = await dashboard.getProjects({ namespace: projectNamespace });
-                return resolve(projects.map(project => new ProjectTreeItem(project)));
+                let settingsFile = new SettingsFile();
+                let settingsData = await settingsFile.readFromFile();
+                return resolve(settingsData.environments.map(env => new EnvironmentTreeItem(env)));
             });
         }
 
