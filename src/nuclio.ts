@@ -45,6 +45,10 @@ export interface IPlatform {
 
 export class EnvironmentsConfig {
     environments: LocalEnvironment[];
+
+    constructor() {
+        this.environments = [];
+    }
 }
 
 export class LocalEnvironment {
@@ -211,7 +215,7 @@ export class Dashboard implements IPlatform {
         const body = JSON.stringify(projectConfig);
 
         // create function by posting function config
-        let result = await axios.post(this.url + '/projects', body);
+        let result = await axios.post(this.url + '/api/projects', body);
         return result.data;
     }
 
@@ -234,7 +238,7 @@ export class Dashboard implements IPlatform {
         const body = JSON.stringify(functionConfig);
 
         // create function by posting function config
-        const response = await axios.post(this.url + '/functions', body);
+        const response = await axios.post(this.url + '/api/functions', body);
 
         const retryIntervalMs = 1000;
         const maxRetries = 60;
@@ -292,7 +296,7 @@ export class Dashboard implements IPlatform {
         }
 
         let response: any;
-        const url = this.url + '/function_invocations';
+        const url = this.url + '/api/function_invocations';
         const axiosMethod = axios[options.method];
 
         // invoke the function by calling the appropriate method on function_invocations
@@ -335,7 +339,7 @@ export class Dashboard implements IPlatform {
         headers['x-nuclio-' + resourceName + '-namespace'] = filter.namespace;
 
         // url is resource name (plural)
-        let path = '/' + resourceName + 's';
+        let path = '/api/' + resourceName + 's';
 
         if (filter.name !== undefined) {
             path += '/' + filter.name;
@@ -380,6 +384,6 @@ export class Dashboard implements IPlatform {
         resource.metadata.namespace = id.namespace;
 
         // delete the function
-        await axios.delete(this.url + '/' + resourceName + 's', { data: JSON.stringify(resource) });
+        await axios.delete(this.url + '/api/' + resourceName + 's', { data: JSON.stringify(resource) });
     }
 }
